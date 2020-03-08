@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "../../../shared/components/FormElements/Button/Button";
 
 import Card from "../../../shared/components/UIElements/Card/Card";
 import Modal from "../../../shared/components/UIElements/Modal/Modal";
 import Map from "../../../shared/components/UIElements/Map/Map";
+
+import { AuthContext } from "../../../shared/context/auth-context";
 
 import "./PlaceItem.scss";
 
@@ -15,11 +17,23 @@ const PlaceItem = ({
   id,
   coordinates
 }) => {
+  const auth = useContext(AuthContext);
+
   const [showMap, setShowMap] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const openMapHandler = () => setShowMap(true);
 
   const closeMapHandler = () => setShowMap(false);
+
+  const openConfirmModalHandler = () => setShowConfirmModal(true);
+
+  const closeConfirmModalHandler = () => setShowConfirmModal(false);
+
+  const confirmDeletingHandler = () => {
+    console.log("DELETING");
+    closeConfirmModalHandler();
+  };
 
   return (
     <>
@@ -36,6 +50,27 @@ const PlaceItem = ({
           <Map center={coordinates} zoom={16} />
         </div>
       </Modal>
+      <Modal
+        show={showConfirmModal}
+        onCancel={closeConfirmModalHandler}
+        header={"Are you sure?"}
+        footerClas="place-item__modal-actions"
+        footer={
+          <>
+            <Button inverse onClick={closeConfirmModalHandler}>
+              CANCEL
+            </Button>
+            <Button danger onClick={confirmDeletingHandler}>
+              DELETE
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Do you want to proceed and delete this place? Please note that it
+          can't be undone thereafter.
+        </p>
+      </Modal>
       <li className="place-item">
         <Card className="place-item__content">
           <div className="place-item__image">
@@ -50,8 +85,12 @@ const PlaceItem = ({
             <Button inverse onClick={openMapHandler}>
               VIEW ON MAP
             </Button>
-            <Button to={`/places/${id}`}>EDIT</Button>
-            <Button danger>DELETE</Button>
+            {auth.isLoggedIn && <Button to={`/places/${id}`}>EDIT</Button>}
+            {auth.isLoggedIn && (
+              <Button danger onClick={openConfirmModalHandler}>
+                DELETE
+              </Button>
+            )}
           </div>
         </Card>
       </li>

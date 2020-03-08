@@ -33,19 +33,21 @@ const Input = ({
   rows,
   errorText,
   validators,
-  onInput
+  onInput,
+  valid,
+  value
 }) => {
   const [inputState, inputDispatch] = useReducer(inputReducer, {
-    value: "",
+    value: value || "",
     isTouched: false,
-    isValid: false
+    isValid: valid || false
   });
 
-  const { value, isValid } = inputState;
+  const { inputValue, isValid } = inputState;
 
   useEffect(() => {
-    onInput(id, value, isValid);
-  }, [id, value, isValid, onInput]);
+    onInput(id, inputValue, isValid);
+  }, [id, inputValue, isValid, onInput]);
 
   const changeHandler = e => {
     inputDispatch({
