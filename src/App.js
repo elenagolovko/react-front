@@ -20,13 +20,16 @@ import "./App.css";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState();
 
-  const login = useCallback(() => {
+  const login = useCallback(uuid => {
     setIsLoggedIn(true);
+    setUserId(uuid);
   }, []);
 
   const logout = useCallback(() => {
     setIsLoggedIn(false);
+    setUserId(null);
   }, []);
 
   let routes;
@@ -56,6 +59,7 @@ const App = () => {
     <AuthContext.Provider
       value={{
         isLoggedIn: isLoggedIn,
+        userId: userId,
         loginHandler: login,
         logoutHandler: logout
       }}

@@ -1,14 +1,50 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import PlaceList from "../components/PlaceList/PlaceList";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner/LoadingSpinner";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal/ErrorModal";
 
-import { DUMMY_PLACES } from "./places.data";
+import { useHttpClient } from "../../shared/hooks/http-hook";
 
 const UserPlaces = () => {
+  const [loadedPlaces, setLoadedPlaces] = useState();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const userId = useParams().userId;
-  const loadedPlaces = DUMMY_PLACES.filter(e => e.creator === userId);
-  return <PlaceList items={loadedPlaces} />;
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const responseData = await sendRequest(
+          `http://localhost:5000/api/places/user/${userId}`
+        );
+        setLoadedPlaces(responseData.places);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchPlaces();
+  }, [sendRequest, userId]);
+
+  const placeDeletedHandler = deletedPlaceId => {
+    setLoadedPlaces(prevState =>
+      prevState.filter(place => place.id !== deletedPlaceId)
+    );
+  };
+
+  return (
+    <>
+      <ErrorModal error={error} onClear={clearError} />
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoading && loadedPlaces && (
+        <PlaceList items={loadedPlaces} onDeletePlace={placeDeletedHandler} />
+      )}
+    </>
+  );
 };
 
 export default UserPlaces;

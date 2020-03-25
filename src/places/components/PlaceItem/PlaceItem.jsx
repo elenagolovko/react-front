@@ -4,6 +4,10 @@ import Button from "../../../shared/components/FormElements/Button/Button";
 import Card from "../../../shared/components/UIElements/Card/Card";
 import Modal from "../../../shared/components/UIElements/Modal/Modal";
 import Map from "../../../shared/components/UIElements/Map/Map";
+import ErrorModal from "../../../shared/components/UIElements/ErrorModal/ErrorModal";
+import LoadingSpinner from "../../../shared/components/UIElements/LoadingSpinner/LoadingSpinner";
+
+import { useHttpClient } from "../../../shared/hooks/http-hook";
 
 import { AuthContext } from "../../../shared/context/auth-context";
 
@@ -15,9 +19,13 @@ const PlaceItem = ({
   address,
   description,
   id,
-  coordinates
+  creatorId,
+  coordinates,
+  onDelete
 }) => {
   const auth = useContext(AuthContext);
+
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
   const [showMap, setShowMap] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -30,13 +38,19 @@ const PlaceItem = ({
 
   const closeConfirmModalHandler = () => setShowConfirmModal(false);
 
-  const confirmDeletingHandler = () => {
-    console.log("DELETING");
+  const confirmDeletingHandler = async () => {
     closeConfirmModalHandler();
+    try {
+      await sendRequest(`http://localhost:5000/api/places${id}`, "DELETE");
+      onDelete(id);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
     <>
+      <ErrorModal error={error} onClear={clearError} />
       <Modal
         show={showMap}
         onCancel={closeMapHandler}
@@ -73,6 +87,7 @@ const PlaceItem = ({
       </Modal>
       <li className="place-item">
         <Card className="place-item__content">
+          {isLoading && <LoadingSpinner asOverlay />}
           <div className="place-item__image">
             <img src={imageUrl} alt={title} />
           </div>
@@ -85,8 +100,10 @@ const PlaceItem = ({
             <Button inverse onClick={openMapHandler}>
               VIEW ON MAP
             </Button>
-            {auth.isLoggedIn && <Button to={`/places/${id}`}>EDIT</Button>}
-            {auth.isLoggedIn && (
+            {auth.userId === creatorId && (
+              <Button to={`/places/${id}`}>EDIT</Button>
+            )}
+            {auth.userId === creatorId && (
               <Button danger onClick={openConfirmModalHandler}>
                 DELETE
               </Button>

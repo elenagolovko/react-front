@@ -16,7 +16,7 @@ const UsersList = ({ list }) => (
     ) : (
       <ul className="users-list">
         {list.map(user => (
-          <UserItem key={user.id} {...user} placeCount={user.places} />
+          <UserItem key={user.id} {...user} placeCount={user.places.length} />
         ))}
       </ul>
     )}
